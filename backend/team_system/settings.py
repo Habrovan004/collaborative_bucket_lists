@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     'buckets',
     'accounts',
     'rest_framework',
-    
+    'rest_framework_simplejwt.token_blacklist',
 
     
 
