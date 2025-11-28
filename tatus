@@ -1,0 +1,27 @@
+[33mcbcf73f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m Resolved conflicts
+[33ma81b4b6[m chore: update project structure and dependencies
+[33mf2dd1a8[m chore: add TypeScript and build configurations
+[33m4152b8d[m chore: update project dependencies
+[33mf9de490[m chore: configure build tools and CSS
+[33mfd3dd7d[m chore: add type definitions and styling
+[33mb798a72[m feat(app): configure routing and providers
+[33m50880ac[m feat(auth): implement auth and profile pages
+[33me2cbcb1[m feat(auth): create protected route component
+[33mbf7c94e[m feat(auth): add useAuth hook
+[33mbe9c3a1[m feat(auth): implement authentication context
+[33mfedc4c0[m added logout logic
+[33m4ba5320[m added signup logic
+[33mcf75355[m made changes on settings.py
+[33m6cd8732[m accepting incoming requirements.txt
+[33m59f3589[m add dependenc ein the requirements.txt
+[33m40047b5[m Merge branch 'dev' of https://github.com/Habrovan004/collaborative_bucket_lists into dev
+[33m1290545[m impliment full function of the buckets
+[33m89d0ee8[m  impliment serializers in bucket app
+[33md2d5090[m Create bucket model
+[33mae0467e[m ACTION: add dependence in requirements.txt
+[33m8dfa280[m ACTION: testing the clone system
+[33m5f2d561[m ACTION: testing the clone system
+[33md2cd6e4[m tracking changes
+[33m082e477[m updating settings.py to add CORS and JWT settings
+[33mba56969[m Add backend and frontend structure
+[33m31d309e[m Update README with project details and contribution info
