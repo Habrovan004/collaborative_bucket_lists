@@ -3,7 +3,7 @@ from .models import Bucket
 
 class BucketSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
-    status = serializers.CharField(source='status', read_only=True)
+    status = serializers.CharField(read_only=True)
     upvotes_count = serializers.IntegerField(read_only=True)
     is_owner = serializers.SerializerMethodField()
     has_upvoted = serializers.SerializerMethodField()
