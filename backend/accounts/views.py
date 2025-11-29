@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
-from .serializers import SignupSerializer ,LoginSerializer
+from .serializers import SignupSerializer ,LoginSerializer, ProfileSerializer
 from rest_framework.views import APIView
 
 
@@ -63,5 +63,28 @@ def logout(request):
     except KeyError:
         return Response({"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST)
     
+@api_view(['GET', 'PUT'])
+@permission_classes([IsAuthenticated])
+def profile_view(request):
+    profile = request.user.profile
 
+    if request.method == 'PUT':
+        serializer = ProfileSerializer(profile, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            # Update User fields manually
+            user_data = request.data.get('user', {})
+            if 'first_name' in user_data:
+                profile.user.first_name = user_data['first_name']
+            if 'last_name' in user_data:
+                profile.user.last_name = user_data['last_name']
+            if 'email' in user_data:
+                profile.user.email = user_data['email']
+            profile.user.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # GET request
+    serializer = ProfileSerializer(profile, context={'request': request})
+    return Response(serializer.data)
 
