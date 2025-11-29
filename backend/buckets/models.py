@@ -6,7 +6,7 @@ User = get_user_model()
 class Bucket(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='buckets/', blank=True, null=True)
+    image = models.ImageField(upload_to='buckets/media', blank=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='buckets')
     is_completed = models.BooleanField(default=False)
     upvotes = models.ManyToManyField(User, related_name='upvoted_buckets', blank=True)

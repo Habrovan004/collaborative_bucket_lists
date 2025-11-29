@@ -39,7 +39,7 @@ def signup(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#@permission_classes([AllowAny])
+@permission_classes([AllowAny])
 class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
