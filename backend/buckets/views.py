@@ -57,7 +57,7 @@ def bucket_detail(request, pk):
         return Response(status=204)
 
 
-# 3. Toggle complete
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def toggle_complete(request, pk):
@@ -74,7 +74,7 @@ def toggle_complete(request, pk):
     })
 
 
-# 4. Upvote / Remove upvote
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def upvote_bucket(request, pk):
