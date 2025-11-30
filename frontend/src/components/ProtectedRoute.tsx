@@ -8,10 +8,11 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   useAuth();
 
-  // For testing - allow access to all pages
+  // TESTING MODE - allow access to all pages
+  console.log('🔐 TESTING MODE: Allowing access to all pages');
   return <>{children}</>;
 
-  // Uncomment when backend is ready:
+  // TODO: Uncomment when backend is ready:
   // return user ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
