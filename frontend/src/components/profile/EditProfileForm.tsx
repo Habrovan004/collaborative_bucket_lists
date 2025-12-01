@@ -120,7 +120,7 @@ const EditProfileModal: FC<EditProfileModalProps> = ({ user, onClose, onSuccess 
                 value={form.username}
                 onChange={e => setForm({...form, username: e.target.value})}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="johndoe"
+                placeholder="tina"
                 required
               />
             </div>
