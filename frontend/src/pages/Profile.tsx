@@ -55,7 +55,7 @@ const Profile: FC = () => {
       });
 
       // Fetch bucket stats
-      const bucketsRes = await fetch('http://127.0.0.1:8000/api/accounts/buckets/', {
+      const bucketsRes = await fetch('http://127.0.0.1:8000/api/buckets/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
