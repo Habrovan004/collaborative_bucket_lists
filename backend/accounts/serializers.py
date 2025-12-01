@@ -65,22 +65,35 @@ class LoginSerializer(serializers.Serializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
+    id = serializers.IntegerField(source='user.id', read_only=True)
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
         fields = [
-            'user',
+            'id',
+            'username',
             'first_name',
             'last_name',
             'email',
             'location',
             'profile_picture',
+            'avatar',
             'bio',
             'total_buckets',
             'complete_buckets',
             'active_buckets'
         ]
-        read_only_fields = ['user', 'total_buckets', 'complete_buckets', 'active_buckets']
+        read_only_fields = ['id', 'username', 'total_buckets', 'complete_buckets', 'active_buckets']
+
+    def get_avatar(self, obj):
+        if obj.profile_picture:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.profile_picture.url)
+            return obj.profile_picture.url
+        return None

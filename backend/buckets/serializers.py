@@ -21,7 +21,6 @@ class BucketSerializer(serializers.ModelSerializer):
     has_upvoted = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
 
-
     class Meta:
         model = Bucket
         fields = [
@@ -31,6 +30,17 @@ class BucketSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at','comments'
         ]
         read_only_fields = ['owner', 'status', 'upvotes_count']
+
+    def to_representation(self, instance):
+        """Override to return absolute URL for image"""
+        representation = super().to_representation(instance)
+        if instance.image:
+            request = self.context.get('request')
+            if request:
+                representation['image'] = request.build_absolute_uri(instance.image.url)
+            else:
+                representation['image'] = instance.image.url
+        return representation
 
     def get_is_owner(self, obj):
         request = self.context.get('request')

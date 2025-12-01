@@ -25,6 +25,7 @@ function App() {
             </ProtectedRoute>
           }
         >
+          <Route index element={<Navigate to="/dashboard/discover" replace />} />
           <Route path="discover" element={<Discover />} />
           <Route path="my-bucket" element={<MyBucket />} />
         </Route>
@@ -50,7 +51,7 @@ function App() {
         />
 
         {/* Redirect root */}
-        <Route path="/" element={<Navigate to="/auth" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>
   );

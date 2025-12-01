@@ -44,7 +44,7 @@ const Profile: FC = () => {
 
       const userData = await userRes.json();
       setUser({
-        id: userData.id || '1',
+        id: String(userData.id || userData.user || '1'),
         username: userData.username || '',
         email: userData.email || '',
         first_name: userData.first_name || '',
@@ -55,14 +55,19 @@ const Profile: FC = () => {
       });
 
       // Fetch bucket stats
-      const bucketsRes = await fetch('http://127.0.0.1:8000/api/buckets/', {
+      const bucketsRes = await fetch(API_ENDPOINTS.BUCKETS.LIST, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (bucketsRes.ok) {
-        const buckets = await bucketsRes.json();
-        const completed = Array.isArray(buckets) ? buckets.filter((b: any) => b.is_completed).length : 0;
-        const bucketItems = Array.isArray(buckets) ? buckets.length : 0;
+        const data = await bucketsRes.json();
+        const buckets = Array.isArray(data) ? data : (data.results || []);
+        // Filter to only show buckets owned by current user
+        const userStr = localStorage.getItem('user');
+        const user = userStr ? JSON.parse(userStr) : null;
+        const myBuckets = buckets.filter((b: any) => b.is_owner || b.owner === user?.username);
+        const completed = myBuckets.filter((b: any) => b.is_completed).length;
+        const bucketItems = myBuckets.length;
         setStats({
           bucketItems,
           completed,
@@ -85,7 +90,7 @@ const Profile: FC = () => {
     if (!token || !user) return;
 
     const formData = new FormData();
-    formData.append('avatar', file);
+    formData.append('profile_picture', file);
 
     try {
       const res = await fetch(API_ENDPOINTS.AUTH.PROFILE, {
@@ -96,8 +101,11 @@ const Profile: FC = () => {
 
       if (res.ok) {
         const data = await res.json();
-        setUser({ ...user, avatar: data.avatar });
-        alert('Avatar updated!');
+        setUser({ ...user, avatar: data.avatar || data.profile_picture });
+        fetchProfileData(); // Refresh to get updated data
+      } else {
+        const errorData = await res.json();
+        alert(errorData.detail || 'Failed to upload avatar');
       }
     } catch (error) {
       console.error('Avatar upload error:', error);

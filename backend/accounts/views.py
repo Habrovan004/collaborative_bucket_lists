@@ -17,6 +17,16 @@ def signup(request):
     serializer=SignupSerializer(data=request.data)
     if serializer.is_valid():
         user=serializer.save()
+        
+        # Create profile with location
+        location = request.data.get('location', '')
+        profile, created = Profile.objects.get_or_create(user=user)
+        if location:
+            profile.location = location
+            profile.first_name = user.first_name
+            profile.last_name = user.last_name
+            profile.email = user.email
+            profile.save()
 
         #generating token
         refresh=RefreshToken.for_user(user)
@@ -29,6 +39,7 @@ def signup(request):
                     'email':user.email,
                     'first_name':user.first_name,
                     'last_name':user.last_name,
+                    'id': user.id,
                 },
                 'refresh':str(refresh),
                 'access':access_token
@@ -69,12 +80,27 @@ class ProfileView(APIView):
 
     def get(self, request):
         profile, _ = Profile.objects.get_or_create(user=request.user)
-        serializer = ProfileSerializer(profile)
+        # Update profile fields from user if needed
+        if not profile.first_name:
+            profile.first_name = request.user.first_name
+            profile.last_name = request.user.last_name
+            profile.email = request.user.email
+            profile.save()
+        
+        # Calculate bucket stats
+        from buckets.models import Bucket
+        user_buckets = Bucket.objects.filter(owner=request.user)
+        profile.total_buckets = user_buckets.count()
+        profile.complete_buckets = user_buckets.filter(is_completed=True).count()
+        profile.active_buckets = profile.total_buckets - profile.complete_buckets
+        profile.save()
+        
+        serializer = ProfileSerializer(profile, context={'request': request})
         return Response(serializer.data)
 
     def put(self, request):
         profile, _ = Profile.objects.get_or_create(user=request.user)
-        serializer = ProfileSerializer(profile, data=request.data)
+        serializer = ProfileSerializer(profile, data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -82,7 +108,7 @@ class ProfileView(APIView):
 
     def patch(self, request):
         profile, _ = Profile.objects.get_or_create(user=request.user)
-        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        serializer = ProfileSerializer(profile, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

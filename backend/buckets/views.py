@@ -24,8 +24,10 @@ def bucket_list_create(request):
 
         serializer = BucketSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(owner=request.user)
-            return Response(serializer.data, status=201)
+            bucket = serializer.save(owner=request.user)
+            # Return the created bucket with proper image URL
+            response_serializer = BucketSerializer(bucket, context={'request': request})
+            return Response(response_serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
 

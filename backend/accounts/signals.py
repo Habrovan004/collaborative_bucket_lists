@@ -7,9 +7,18 @@ from .models import Profile
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=instance, location="")  
+        Profile.objects.get_or_create(
+            user=instance,
+            defaults={
+                'first_name': instance.first_name,
+                'last_name': instance.last_name,
+                'email': instance.email,
+                'location': ""
+            }
+        )  
 
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
