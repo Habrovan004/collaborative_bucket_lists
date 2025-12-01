@@ -6,64 +6,82 @@ interface User {
   location: string;
   bio?: string;
   avatar?: string;
+  first_name: string;
+  last_name: string;
 }
 
 interface ProfileHeaderProps {
   user: User;
   onEdit: () => void;
-  onAvatarChange: () => void;
+  onAvatarChange: (file: File) => void;
 }
 
 const ProfileHeader: FC<ProfileHeaderProps> = ({ user, onEdit, onAvatarChange }) => {
+  const fullName = `${user.first_name} ${user.last_name}`.trim();
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) onAvatarChange(file);
+  };
+
+  const avatarSrc = user.avatar || `https://ui-avatars.com/api/?name=${fullName}&background=667eea&color=fff`;
+
   return (
-    <>
-      {/* Gradient header */}
-      <div className="w-full h-40 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 relative">
+    <div className="bg-white rounded-xl shadow-sm mb-6 overflow-hidden">
+      {/* Gradient Header with Edit Pencil */}
+      <div className="h-32 bg-gradient-to-r from-purple-500 to-pink-500 relative">
         <button 
           onClick={onEdit}
-          className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:shadow-lg transition-shadow"
+          className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:shadow-lg"
+          title="Edit Profile"
         >
           ✏️
         </button>
       </div>
 
-      {/* Profile card */}
-      <div className="bg-white p-6 rounded-xl shadow-md -mt-12 relative z-10">
-        <div className="flex items-center gap-5">
-          {/* Profile Picture with Camera Icon */}
+      {/* Profile Content */}
+      <div className="px-6 pb-6 -mt-12">
+        <div className="flex items-start gap-4">
+          {/* Avatar on left */}
           <div className="relative">
-            <div className="bg-gray-200 p-4 rounded-full">
-              <div className="w-12 h-12 text-gray-700 flex items-center justify-center">
-                👤
-              </div>
+            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
+              <img
+                src={avatarSrc}
+                alt={fullName}
+                className="w-full h-full object-cover"
+              />
             </div>
-            <button 
-              onClick={onAvatarChange}
-              className="absolute -bottom-1 -right-1 bg-blue-500 text-white p-1 rounded-full shadow-md hover:bg-blue-600 transition-colors"
-            >
+            <label className="absolute -bottom-2 -right-2 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600">
+              <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
               📷
-            </button>
+            </label>
           </div>
 
-          <div className="flex-1">
-            <h2 className="text-xl font-bold">{user.username}</h2>
-            <p className="text-gray-500">{user.bio}</p>
+          {/* User info on right */}
+          <div className="flex-1 pt-12">
+            <h1 className="text-2xl font-bold">{fullName}</h1>
+            <p className="text-gray-600">{user.username}</p>
 
-            {/* Email + Location */}
-            <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
-              <div className="flex items-center gap-1">
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center gap-2 text-gray-600">
                 <span>📧</span>
-                {user.email}
+                <span>{user.email}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <span>📍</span>
-                {user.location}
-              </div>
+              {user.location && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <span>📍</span>
+                  <span>{user.location}</span>
+                </div>
+              )}
             </div>
+
+            {user.bio && (
+              <p className="text-gray-700 mt-4">{user.bio}</p>
+            )}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
