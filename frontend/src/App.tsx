@@ -4,37 +4,54 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 
+import Discover from './pages/Discover';
+import MyBucket from './pages/Mybucket';
+import AddBucketItem from './pages/AddBucketItem';
+
 function App() {
   return (
     <Router>
-      <div className="App">
-        <Routes>
-          {/* Public route - login page */}
-          <Route path="/auth" element={<Auth />} />
-          
-          {/* Protected routes */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Default route - start with login */}
-          <Route path="/" element={<Navigate to="/auth" replace />} />
-        </Routes>
-      </div>
+      <Routes>
+
+        {/* Public route */}
+        <Route path="/auth" element={<Auth />} />
+
+        {/* Dashboard with nested pages */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="discover" element={<Discover />} />
+          <Route path="my-bucket" element={<MyBucket />} />
+        </Route>
+
+        {/* Add Item - Independent Page */}
+        <Route
+          path="/add-item"
+          element={
+            <ProtectedRoute>
+              <AddBucketItem />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Profile */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Redirect root */}
+        <Route path="/" element={<Navigate to="/auth" replace />} />
+      </Routes>
     </Router>
   );
 }

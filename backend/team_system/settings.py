@@ -15,6 +15,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+from rest_framework.settings import api_settings
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -50,6 +51,7 @@ CORS_ALLOW_CREDENTIALS = True
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -59,7 +61,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'buckets',
     'accounts',
-    'rest_framework',
+  
     'rest_framework_simplejwt.token_blacklist',
 
 
