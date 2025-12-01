@@ -51,7 +51,7 @@ function App() {
         />
 
         {/* Redirect root */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/auth" replace />} />
       </Routes>
     </Router>
   );
