@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000/api/"; // Replace with your actual API base UR
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 if (!API_BASE_URL) {
   console.error('❌ VITE_API_BASE_URL is not defined in environment variables');
@@ -7,12 +7,13 @@ if (!API_BASE_URL) {
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: `${API_BASE_URL}accounts/login/`,
-    REGISTER: `${API_BASE_URL}accounts/signup/`,
+    LOGIN: `${API_BASE_URL}/login/`,
+    REGISTER: `${API_BASE_URL}/signup/`,
     USER: `${API_BASE_URL}/user/`,
     CHANGE_PASSWORD: `${API_BASE_URL}/password/change/`,
     LOGOUT: `${API_BASE_URL}/logout/`,
     PROFILE_STATS: `${API_BASE_URL}/profile/stats/`,
+
   },
 };
 

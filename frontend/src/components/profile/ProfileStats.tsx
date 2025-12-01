@@ -1,76 +1,32 @@
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 
-interface UserStats {
+interface Stats {
   bucketItems: number;
   completed: number;
   activeGoals: number;
 }
 
 interface ProfileStatsProps {
-  userId: string;
+  stats: Stats;
 }
 
-const ProfileStats: FC<ProfileStatsProps> = ({ userId }) => {
-  const [stats, setStats] = useState<UserStats>({
-    bucketItems: 0,
-    completed: 0,
-    activeGoals: 0
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/profile/stats/${userId}/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setStats(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, [userId]);
-
-  if (loading) {
-    return (
-      <div className="flex gap-10 mt-6">
-        {[1, 2, 3].map((item) => (
-          <div key={item} className="text-center">
-            <div className="h-7 bg-gray-200 rounded w-8 mx-auto mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-16 mx-auto"></div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
+const ProfileStats: FC<ProfileStatsProps> = ({ stats }) => {
   return (
-    <div className="flex gap-10 mt-6">
-      <div className="text-center">
-        <p className="text-2xl font-bold">{stats.bucketItems}</p>
-        <p className="text-gray-500 text-sm">Bucket List Items</p>
-      </div>
-
-      <div className="text-center">
-        <p className="text-2xl font-bold">{stats.completed}</p>
-        <p className="text-gray-500 text-sm">Completed</p>
-      </div>
-
-      <div className="text-center">
-        <p className="text-2xl font-bold">{stats.activeGoals}</p>
-        <p className="text-gray-500 text-sm">Active Goals</p>
+    <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <h2 className="text-lg font-bold mb-4">Bucket List Stats</h2>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-blue-600">{stats.bucketItems}</div>
+          <div className="text-gray-500 text-sm">Total Items</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+          <div className="text-gray-500 text-sm">Completed</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-purple-600">{stats.activeGoals}</div>
+          <div className="text-gray-500 text-sm">Active</div>
+        </div>
       </div>
     </div>
   );

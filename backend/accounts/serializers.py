@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from .models import Profile
+
+
 
 class SignupSerializer(serializers.ModelSerializer):
     password=serializers.CharField(write_only=True, validators=[validate_password])
@@ -58,3 +61,26 @@ class LoginSerializer(serializers.Serializer):
             "username": user.username,
             "id": user.id,
         }
+
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = [
+            'user',
+            'first_name',
+            'last_name',
+            'email',
+            'location',
+            'profile_picture',
+            'bio',
+            'total_buckets',
+            'complete_buckets',
+            'active_buckets'
+        ]
+        read_only_fields = ['user', 'total_buckets', 'complete_buckets', 'active_buckets']

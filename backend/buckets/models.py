@@ -26,3 +26,15 @@ class Bucket(models.Model):
     @property
     def upvotes_count(self):
         return self.upvotes.count()
+    
+class Comment(models.Model):
+    bucket = models.ForeignKey(Bucket, related_name="comments", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Comment by {self.user.username} on {self.bucket.title}"
