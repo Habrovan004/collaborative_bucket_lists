@@ -39,6 +39,7 @@ const Dashboard: React.FC = () => {
           >
             <span>📋</span> My Bucket
           </Link>
+          
           <Link
             to="/dashboard/users"
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition"
@@ -46,8 +47,9 @@ const Dashboard: React.FC = () => {
             <span>👤</span> Users
           </Link>
 
+          {/* Exact Profile Path */}
           <Link
-            to="/dashboard/profile"
+            to="/profile"  // ← CHANGED FROM "/dashboard/profile" TO "/profile"
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition"
           >
             <span>👤</span> Profile
