@@ -148,7 +148,7 @@ export function ActivityCard({
 
         {/* Title & Description */}
         <h2 className="text-2xl font-bold text-gray-900 mb-3">
-          {activity.isCompleted && <span className="line-through opacity-70">{activity.title}</span>}
+          {activity.isCompleted && <span className=" opacity-70">{activity.title}</span>}
           {!activity.isCompleted && activity.title}
         </h2>
         <p className="text-gray-600 leading-relaxed mb-5">{activity.description}</p>

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { ActivityCard } from './ActivityBucket';
 import type { Activity } from './ActivityBucket';
 import { API_ENDPOINTS } from "../config/api";
+import { Sparkle, Sparkles } from "lucide-react";
+import { Navigate } from "react-router-dom";
 
 const Discover: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -53,7 +55,8 @@ const Discover: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch buckets');
+        // throw new Error('Failed to fetch buckets');
+          return <Navigate to="/auth" replace />;
       }
 
       const data = await response.json();
@@ -150,8 +153,12 @@ const Discover: React.FC = () => {
     <div className="w-full max-w-4xl mx-auto p-4">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Discover Adventures</h1>
-        <p className="text-gray-600">
+       <h1 className="text-5xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-3">
+            <Sparkles className="w-10 h-10 text-purple-600" />
+            Discover Adventures
+            <Sparkles className="w-10 h-10 text-pink-600" />
+          </h1>
+        <p className="text-gray-600 text-center">
           Explore bucket list items from our community and get inspired
         </p>
       </div>

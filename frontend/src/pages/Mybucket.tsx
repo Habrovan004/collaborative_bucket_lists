@@ -412,7 +412,7 @@ const MyBucket: React.FC = () => {
               <h3 className="text-2xl font-bold text-gray-700 mb-3">
                 {filter === 'completed' ? "No achievements yet" : "Your list is empty"}
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-gray-900 mb-6">
                 {filter === 'completed' 
                   ? "When you complete a dream, it'll appear here!" 
                   : "Start by adding your first bucket list item"}
