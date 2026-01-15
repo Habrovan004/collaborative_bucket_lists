@@ -11,5 +11,8 @@ urlpatterns=[
      # Profile endpoint
     path('profile/', ProfileView.as_view(), name='profile'),
 
+    # JWT refresh endpoint (used by frontend to refresh access tokens)
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
     
 ]

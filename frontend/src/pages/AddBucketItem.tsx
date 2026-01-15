@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Loader2 } from "lucide-react";
 import { API_ENDPOINTS } from "../config/api";
+import axiosClient from "../config/axiosClients";
 
 interface AddBucketItemProps {
   isOpen?: boolean;
@@ -58,26 +59,18 @@ const AddBucketItem: React.FC<AddBucketItemProps> = ({
       formData.append("description", description);
       if (image) formData.append("image", image);
 
-      const response = await fetch(API_ENDPOINTS.BUCKETS.LIST, {
-        method: 'POST',
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          // Don't set Content-Type for FormData, browser will set it with boundary
-        },
-        body: formData,
+      await axiosClient.post(API_ENDPOINTS.BUCKETS.LIST, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (response.ok) {
         navigate("/dashboard/my-bucket");
-      } else {
-        const data = await response.json();
-        console.error('Upload error response:', data);
-        const errorMsg = data.detail || data.image?.[0] || JSON.stringify(data) || "Failed to add item";
-        alert(errorMsg);
-      }
     } catch (err: any) {
       console.error("Add failed:", err);
-      alert(err.message || "Failed to add item");
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.image?.[0] ||
+        err.message ||
+        "Failed to add item";
+      alert(msg);
     } finally {
       setLoading(false);
     }

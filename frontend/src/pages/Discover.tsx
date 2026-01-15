@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { ActivityCard } from './ActivityBucket';
 import type { Activity } from './ActivityBucket';
 import { API_ENDPOINTS } from "../config/api";
-import { Sparkle, Sparkles } from "lucide-react";
-import { Navigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
+import axiosClient from "../config/axiosClients";
 
 const Discover: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -48,18 +48,8 @@ const Discover: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('access_token');
-      
-      const response = await fetch(API_ENDPOINTS.BUCKETS.LIST, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-      });
-
-      if (!response.ok) {
-        // throw new Error('Failed to fetch buckets');
-          return <Navigate to="/auth" replace />;
-      }
-
-      const data = await response.json();
+      const res = await axiosClient.get(API_ENDPOINTS.BUCKETS.LIST);
+      const data = res.data;
       const buckets = Array.isArray(data) ? data : (data.results || []);
       const mappedActivities = buckets.map(mapBucketToActivity);
       setActivities(mappedActivities);
@@ -77,24 +67,8 @@ const Discover: React.FC = () => {
 
   const handleLike = async (id: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        alert('Please login to like items');
-        return;
-      }
-
-      const response = await fetch(API_ENDPOINTS.BUCKETS.UPVOTE(id), {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        // Refresh the list
-        fetchBuckets();
-      } else {
-        const data = await response.json();
-        alert(data.detail || 'Failed to like');
-      }
+      await axiosClient.post(API_ENDPOINTS.BUCKETS.UPVOTE(id));
+      fetchBuckets();
     } catch (err) {
       console.error('Like error:', err);
       alert('Failed to like item');
@@ -103,28 +77,8 @@ const Discover: React.FC = () => {
 
   const handleComment = async (id: string, text: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        alert('Please login to comment');
-        return;
-      }
-
-      const response = await fetch(API_ENDPOINTS.BUCKETS.COMMENTS(id), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text }),
-      });
-
-      if (response.ok) {
-        // Refresh the list
-        fetchBuckets();
-      } else {
-        const data = await response.json();
-        alert(data.detail || 'Failed to add comment');
-      }
+      await axiosClient.post(API_ENDPOINTS.BUCKETS.COMMENTS(id), { text });
+      fetchBuckets();
     } catch (err) {
       console.error('Comment error:', err);
       alert('Failed to add comment');
@@ -133,7 +87,7 @@ const Discover: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-full max-w-4xl mx-auto p-4 flex items-center justify-center min-h-[400px]">
+      <div className="w-full max-w-4xl mx-auto p-4 flex items-center justify-center min-h-[240px] sm:min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
       </div>
     );
@@ -150,24 +104,24 @@ const Discover: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4">
+    <div className="w-full max-w-4xl mx-auto p-2 sm:p-4">
       {/* Header */}
-      <div className="mb-8">
-       <h1 className="text-5xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-3">
-            <Sparkles className="w-10 h-10 text-purple-600" />
-            Discover Adventures
-            <Sparkles className="w-10 h-10 text-pink-600" />
-          </h1>
-        <p className="text-gray-600 text-center">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-3">
+          <Sparkles className="w-7 h-7 sm:w-10 sm:h-10 text-purple-600" />
+          Discover Adventures
+          <Sparkles className="w-7 h-7 sm:w-10 sm:h-10 text-pink-600" />
+        </h1>
+        <p className="text-gray-600 text-center text-sm sm:text-base">
           Explore bucket list items from our community and get inspired
         </p>
       </div>
 
       {/* Activities Grid */}
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         {activities.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-gray-500 text-lg">No activities found. Be the first to add one!</p>
+          <div className="text-center py-12 sm:py-20">
+            <p className="text-gray-500 text-base sm:text-lg">No activities found. Be the first to add one!</p>
           </div>
         ) : (
           activities.map(activity => (

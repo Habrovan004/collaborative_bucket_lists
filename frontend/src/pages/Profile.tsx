@@ -3,6 +3,7 @@ import ProfileHeader from "../components/profile/ProfileHeader";
 import ProfileStats from "../components/profile/ProfileStats";
 import EditProfileModal from "../components/profile/EditProfileForm";
 import { API_ENDPOINTS } from "../config/api";
+import axiosClient from "../config/axiosClients";
 
 interface User {
   id: string;
@@ -30,19 +31,8 @@ const Profile: FC = () => {
       }
 
       // Fetch user profile
-      const userRes = await fetch(API_ENDPOINTS.AUTH.PROFILE, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!userRes.ok) {
-        if (userRes.status === 401) {
-          localStorage.clear();
-          window.location.href = '/auth';
-        }
-        return;
-      }
-
-      const userData = await userRes.json();
+      const userRes = await axiosClient.get(API_ENDPOINTS.AUTH.PROFILE);
+      const userData = userRes.data;
       setUser({
         id: String(userData.id || userData.user || '1'),
         username: userData.username || '',
@@ -55,25 +45,20 @@ const Profile: FC = () => {
       });
 
       // Fetch bucket stats
-      const bucketsRes = await fetch(API_ENDPOINTS.BUCKETS.LIST, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const bucketsRes = await axiosClient.get(API_ENDPOINTS.BUCKETS.LIST);
+      const data = bucketsRes.data;
+      const buckets = Array.isArray(data) ? data : (data.results || []);
+      // Filter to only show buckets owned by current user
+      const userStr = localStorage.getItem('user');
+      const storedUser = userStr ? JSON.parse(userStr) : null;
+      const myBuckets = buckets.filter((b: any) => b.is_owner || b.owner === storedUser?.username);
+      const completed = myBuckets.filter((b: any) => b.is_completed).length;
+      const bucketItems = myBuckets.length;
+      setStats({
+        bucketItems,
+        completed,
+        activeGoals: bucketItems - completed
       });
-
-      if (bucketsRes.ok) {
-        const data = await bucketsRes.json();
-        const buckets = Array.isArray(data) ? data : (data.results || []);
-        // Filter to only show buckets owned by current user
-        const userStr = localStorage.getItem('user');
-        const user = userStr ? JSON.parse(userStr) : null;
-        const myBuckets = buckets.filter((b: any) => b.is_owner || b.owner === user?.username);
-        const completed = myBuckets.filter((b: any) => b.is_completed).length;
-        const bucketItems = myBuckets.length;
-        setStats({
-          bucketItems,
-          completed,
-          activeGoals: bucketItems - completed
-        });
-      }
     } catch (error) {
       console.error('Profile fetch error:', error);
     } finally {
@@ -93,20 +78,12 @@ const Profile: FC = () => {
     formData.append('profile_picture', file);
 
     try {
-      const res = await fetch(API_ENDPOINTS.AUTH.PROFILE, {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
+      const res = await axiosClient.patch(API_ENDPOINTS.AUTH.PROFILE, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        setUser({ ...user, avatar: data.avatar || data.profile_picture });
-        fetchProfileData(); // Refresh to get updated data
-      } else {
-        const errorData = await res.json();
-        alert(errorData.detail || 'Failed to upload avatar');
-      }
+      const data = res.data;
+      setUser({ ...user, avatar: data.avatar || data.profile_picture });
+      fetchProfileData(); // Refresh to get updated data
     } catch (error) {
       console.error('Avatar upload error:', error);
       alert('Failed to upload avatar');
@@ -115,7 +92,7 @@ const Profile: FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full flex items-center justify-center py-10 sm:py-16">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
       </div>
     );
@@ -123,7 +100,7 @@ const Profile: FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full flex items-center justify-center p-4 py-10 sm:py-16">
         <div className="text-center">
           <h2 className="text-xl font-bold mb-4">No profile data</h2>
           <button onClick={() => window.location.href = '/auth'} className="bg-purple-500 text-white px-6 py-2 rounded-lg">
@@ -135,10 +112,10 @@ const Profile: FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="w-full bg-gray-50">
       {/* Back Button Header */}
       <div className="sticky top-0 z-10 bg-white border-b px-4 py-3">
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
+        <div className="max-w-2xl mx-auto flex items-center gap-3 sm:gap-4">
           <button 
             onClick={() => window.history.back()}
             className="text-gray-600 hover:text-gray-900 p-2 rounded-full hover:bg-gray-100"
@@ -147,11 +124,11 @@ const Profile: FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <h1 className="text-lg font-semibold text-gray-800">Profile</h1>
+          <h1 className="text-base sm:text-lg font-semibold text-gray-800">Profile</h1>
         </div>
       </div>
 
-      <div className="py-6 px-4">
+      <div className="py-4 sm:py-6 px-3 sm:px-4">
         <div className="max-w-2xl mx-auto">
           <ProfileHeader 
             user={user} 
@@ -165,7 +142,7 @@ const Profile: FC = () => {
           <button onClick={() => {
             localStorage.clear();
             window.location.href = '/auth';
-          }} className="w-full mt-6 bg-gradient-to-r from-red-500 to-pink-500 text-white p-4 rounded-xl font-semibold shadow hover:shadow-lg">
+          }} className="w-full mt-6 bg-gradient-to-r from-red-500 to-pink-500 text-white p-3.5 sm:p-4 rounded-xl font-semibold shadow hover:shadow-lg">
             Logout
           </button>
         </div>

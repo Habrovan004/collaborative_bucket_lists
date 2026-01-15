@@ -1,7 +1,7 @@
 const API_BASE_URL = 'http://localhost:8000/api'
 
 if (!API_BASE_URL) {
-  console.error('❌ VITE_API_BASE_URL is not defined in environment variables');
+  console.error(' VITE_API_BASE_URL is not defined in environment variables');
   console.log('Using fallback URL for development');
 }
 
@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
     CHANGE_PASSWORD: `${API_BASE_URL}/accounts/password/change/`,
     LOGOUT: `${API_BASE_URL}/accounts/logout/`,
     PROFILE: `${API_BASE_URL}/accounts/profile/`,
+    REFRESH: `${API_BASE_URL}/accounts/token/refresh/`,
     BUCKETS_CREATE: `${API_BASE_URL}/buckets/`,
     PROFILE_STATS: `${API_BASE_URL}/accounts/profile/stats/`,
   },

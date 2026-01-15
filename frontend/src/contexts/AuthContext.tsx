@@ -27,13 +27,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
     if (token) {
       const result = await authAPI.getProfile();
       if (result.success) {
         setUser(result.data.user);
       } else {
-        localStorage.removeItem('token');
+        localStorage.removeItem('access_token');
       }
     }
     setLoading(false);
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (credentials: any) => {
     const result = await authAPI.login(credentials);
     if (result.success) {
-      localStorage.setItem('token', result.data.token);
+      localStorage.setItem('access_token', result.data.token);
       setUser(result.data.user);
     }
     return result;
@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const register = async (userData: any) => {
     const result = await authAPI.register(userData);
     if (result.success) {
-      localStorage.setItem('token', result.data.token);
+      localStorage.setItem('access_token', result.data.token);
       setUser(result.data.user);
     }
     return result;
@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
   };
 
   const changePassword = async (passwords: any) => {

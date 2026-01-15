@@ -6,6 +6,7 @@ import { EditActivityModal } from './EditActivity';
 import { ShareExperienceModal } from './ShareExperience';
 import type { Activity } from './ActivityBucket';
 import { API_ENDPOINTS } from "../config/api";
+import axiosClient from "../config/axiosClients";
 
 const MyBucket: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -65,15 +66,8 @@ const MyBucket: React.FC = () => {
         return;
       }
 
-      const response = await fetch(API_ENDPOINTS.BUCKETS.LIST, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch buckets');
-      }
-
-      const data = await response.json();
+      const res = await axiosClient.get(API_ENDPOINTS.BUCKETS.LIST);
+      const data = res.data;
       const buckets = Array.isArray(data) ? data : (data.results || []);
       // Filter to only show buckets owned by current user
       const userStr = localStorage.getItem('user');
@@ -118,24 +112,18 @@ const MyBucket: React.FC = () => {
         formData.append('image', imageFile);
       }
 
-      const response = await fetch(API_ENDPOINTS.BUCKETS.LIST, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData,
+      await axiosClient.post(API_ENDPOINTS.BUCKETS.LIST, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (response.ok) {
-        await fetchMyBuckets();
-        setIsAddModalOpen(false);
-      } else {
-        const data = await response.json();
-        console.error('Upload error response:', data);
-        const errorMsg = data.detail || data.image?.[0] || JSON.stringify(data) || 'Failed to add bucket item';
-        alert(errorMsg);
-      }
-    } catch (err) {
+      await fetchMyBuckets();
+      setIsAddModalOpen(false);
+    } catch (err: any) {
       console.error('Add error:', err);
-      alert('Failed to add bucket item');
+      const errorMsg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.image?.[0] ||
+        'Failed to add bucket item';
+      alert(errorMsg);
     } finally {
       setIsAdding(false);
     }
@@ -154,19 +142,11 @@ const MyBucket: React.FC = () => {
       formData.append('title', title);
       formData.append('description', desc);
 
-      const response = await fetch(API_ENDPOINTS.BUCKETS.DETAIL(id), {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData,
+      await axiosClient.patch(API_ENDPOINTS.BUCKETS.DETAIL(id), formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (response.ok) {
-        await fetchMyBuckets();
-        setEditingActivity(null);
-      } else {
-        const data = await response.json();
-        alert(data.detail || 'Failed to update bucket item');
-      }
+      await fetchMyBuckets();
+      setEditingActivity(null);
     } catch (err) {
       console.error('Edit error:', err);
       alert('Failed to update bucket item');
@@ -188,17 +168,8 @@ const MyBucket: React.FC = () => {
         return;
       }
 
-      const response = await fetch(API_ENDPOINTS.BUCKETS.DETAIL(id), {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        await fetchMyBuckets();
-      } else {
-        const data = await response.json();
-        alert(data.detail || 'Failed to delete bucket item');
-      }
+      await axiosClient.delete(API_ENDPOINTS.BUCKETS.DETAIL(id));
+      await fetchMyBuckets();
     } catch (err) {
       console.error('Delete error:', err);
       alert('Failed to delete bucket item');
@@ -217,28 +188,19 @@ const MyBucket: React.FC = () => {
       }
 
       // First toggle complete
-      const toggleResponse = await fetch(API_ENDPOINTS.BUCKETS.TOGGLE_COMPLETE(id), {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      await axiosClient.post(API_ENDPOINTS.BUCKETS.TOGGLE_COMPLETE(id));
 
-      if (toggleResponse.ok) {
-        // Update with experience note if provided
-        if (note) {
-          const formData = new FormData();
-          formData.append('description', note);
-          await fetch(API_ENDPOINTS.BUCKETS.DETAIL(id), {
-            method: 'PATCH',
-            headers: { 'Authorization': `Bearer ${token}` },
-            body: formData,
-          });
-        }
-        await fetchMyBuckets();
-        setSharingActivity(null);
-      } else {
-        const data = await toggleResponse.json();
-        alert(data.detail || 'Failed to mark as complete');
+      // Update with experience note if provided
+      if (note) {
+        const formData = new FormData();
+        formData.append('description', note);
+        await axiosClient.patch(API_ENDPOINTS.BUCKETS.DETAIL(id), formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       }
+
+      await fetchMyBuckets();
+      setSharingActivity(null);
     } catch (err) {
       console.error('Complete error:', err);
       alert('Failed to mark as complete');
@@ -249,23 +211,8 @@ const MyBucket: React.FC = () => {
 
   const handleLike = async (id: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        alert('Please login to like items');
-        return;
-      }
-
-      const response = await fetch(API_ENDPOINTS.BUCKETS.UPVOTE(id), {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        await fetchMyBuckets();
-      } else {
-        const data = await response.json();
-        alert(data.detail || 'Failed to like');
-      }
+      await axiosClient.post(API_ENDPOINTS.BUCKETS.UPVOTE(id));
+      await fetchMyBuckets();
     } catch (err) {
       console.error('Like error:', err);
       alert('Failed to like item');
@@ -274,27 +221,8 @@ const MyBucket: React.FC = () => {
 
   const handleComment = async (id: string, text: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        alert('Please login to comment');
-        return;
-      }
-
-      const response = await fetch(API_ENDPOINTS.BUCKETS.COMMENTS(id), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text }),
-      });
-
-      if (response.ok) {
-        await fetchMyBuckets();
-      } else {
-        const data = await response.json();
-        alert(data.detail || 'Failed to add comment');
-      }
+      await axiosClient.post(API_ENDPOINTS.BUCKETS.COMMENTS(id), { text });
+      await fetchMyBuckets();
     } catch (err) {
       console.error('Comment error:', err);
       alert('Failed to add comment');
@@ -325,26 +253,26 @@ const MyBucket: React.FC = () => {
     <div className="w-full py-8">
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-5xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-3">
-            <Sparkles className="w-10 h-10 text-purple-600" />
+        <div className="text-center mb-8 sm:mb-10">
+          <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-3">
+            <Sparkles className="w-7 h-7 sm:w-10 sm:h-10 text-purple-600" />
             My Bucket List
-            <Sparkles className="w-10 h-10 text-pink-600" />
+            <Sparkles className="w-7 h-7 sm:w-10 sm:h-10 text-pink-600" />
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-base sm:text-xl text-gray-600">
             Dream big. Live boldly. Celebrate every win.
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
           <div className="bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg border border-purple-100">
             <div className="flex items-center gap-4">
               <div className="p-4 bg-purple-100 rounded-2xl">
                 <ListTodo className="w-8 h-8 text-purple-600" />
               </div>
               <div>
-                <p className="text-4xl font-bold text-gray-900">{activities.length}</p>
+                <p className="text-3xl sm:text-4xl font-bold text-gray-900">{activities.length}</p>
                 <p className="text-gray-600">Total Dreams</p>
               </div>
             </div>
@@ -356,7 +284,7 @@ const MyBucket: React.FC = () => {
                 <ListTodo className="w-8 h-8 text-blue-600" />
               </div>
               <div>
-                <p className="text-4xl font-bold text-gray-900">{activeCount}</p>
+                <p className="text-3xl sm:text-4xl font-bold text-gray-900">{activeCount}</p>
                 <p className="text-gray-600">In Progress</p>
               </div>
             </div>
@@ -368,7 +296,7 @@ const MyBucket: React.FC = () => {
                 <Trophy className="w-8 h-8 text-green-600" />
               </div>
               <div>
-                <p className="text-4xl font-bold text-gray-900">{completedCount}</p>
+                <p className="text-3xl sm:text-4xl font-bold text-gray-900">{completedCount}</p>
                 <p className="text-gray-600">Achieved!</p>
               </div>
             </div>
@@ -376,13 +304,13 @@ const MyBucket: React.FC = () => {
         </div>
 
         {/* Filter Tabs + Add Button */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
-          <div className="flex gap-3">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-3">
             {(['all', 'active', 'completed'] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-6 py-3 rounded-2xl font-medium transition-all transform hover:scale-105 ${
+                className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-medium transition-all transform hover:scale-105 ${
                   filter === f
                     ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
                     : 'bg-white text-gray-700 hover:bg-gray-100 shadow'
@@ -395,19 +323,19 @@ const MyBucket: React.FC = () => {
 
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg font-bold rounded-2xl hover:shadow-2xl transition-all transform hover:scale-105"
+            className="inline-flex items-center justify-center gap-3 px-5 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-base sm:text-lg font-bold rounded-2xl hover:shadow-2xl transition-all transform hover:scale-105"
           >
-            <Plus className="w-6 h-6" />
+            <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
             Add New Dream
           </button>
         </div>
 
         {/* Activities Grid */}
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-1">
+        <div className="grid gap-6 sm:gap-8">
           {filteredActivities.length === 0 ? (
-            <div className="col-span-full text-center py-20">
-              <div className="bg-gray-200 border-2 border-dashed rounded-xl w-32 h-32 mx-auto mb-6 flex items-center justify-center">
-                <Trophy className="w-16 h-16 text-gray-400" />
+            <div className="col-span-full text-center py-12 sm:py-20">
+              <div className="bg-gray-200 border-2 border-dashed rounded-xl w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-6 flex items-center justify-center">
+                <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400" />
               </div>
               <h3 className="text-2xl font-bold text-gray-700 mb-3">
                 {filter === 'completed' ? "No achievements yet" : "Your list is empty"}
