@@ -6,7 +6,7 @@ User = get_user_model()
 class Bucket(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='buckets/', blank=True, null=True)
+    image = models.ImageField(upload_to='buckets/media', blank=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='buckets')
     is_completed = models.BooleanField(default=False)
     upvotes = models.ManyToManyField(User, related_name='upvoted_buckets', blank=True)
@@ -26,3 +26,15 @@ class Bucket(models.Model):
     @property
     def upvotes_count(self):
         return self.upvotes.count()
+    
+class Comment(models.Model):
+    bucket = models.ForeignKey(Bucket, related_name="comments", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Comment by {self.user.username} on {self.bucket.title}"

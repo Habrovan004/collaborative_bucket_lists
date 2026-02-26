@@ -4,7 +4,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
-from .serializers import SignupSerializer
+from .serializers import SignupSerializer ,LoginSerializer,ProfileSerializer
+from rest_framework.views import APIView
+from .models import Profile
+
 
 
 # Create your views here.
@@ -14,6 +17,16 @@ def signup(request):
     serializer=SignupSerializer(data=request.data)
     if serializer.is_valid():
         user=serializer.save()
+        
+        # Create profile with location
+        location = request.data.get('location', '')
+        profile, created = Profile.objects.get_or_create(user=user)
+        if location:
+            profile.location = location
+            profile.first_name = user.first_name
+            profile.last_name = user.last_name
+            profile.email = user.email
+            profile.save()
 
         #generating token
         refresh=RefreshToken.for_user(user)
@@ -26,6 +39,7 @@ def signup(request):
                     'email':user.email,
                     'first_name':user.first_name,
                     'last_name':user.last_name,
+                    'id': user.id,
                 },
                 'refresh':str(refresh),
                 'access':access_token
@@ -36,6 +50,16 @@ def signup(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@permission_classes([AllowAny])
+class LoginView(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout(request):
@@ -49,3 +73,43 @@ def logout(request):
         return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
     except KeyError:
         return Response({"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        # Update profile fields from user if needed
+        if not profile.first_name:
+            profile.first_name = request.user.first_name
+            profile.last_name = request.user.last_name
+            profile.email = request.user.email
+            profile.save()
+        
+        # Calculate bucket stats
+        from buckets.models import Bucket
+        user_buckets = Bucket.objects.filter(owner=request.user)
+        profile.total_buckets = user_buckets.count()
+        profile.complete_buckets = user_buckets.filter(is_completed=True).count()
+        profile.active_buckets = profile.total_buckets - profile.complete_buckets
+        profile.save()
+        
+        serializer = ProfileSerializer(profile, context={'request': request})
+        return Response(serializer.data)
+
+    def put(self, request):
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        serializer = ProfileSerializer(profile, data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request):
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        serializer = ProfileSerializer(profile, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

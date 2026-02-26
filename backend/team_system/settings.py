@@ -11,10 +11,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+from rest_framework.settings import api_settings
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -27,8 +30,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS=[
     'http://localhost:5173',
+    'http://127.0.0.1:5173'
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -48,6 +53,7 @@ CORS_ALLOW_CREDENTIALS = True
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -57,8 +63,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'buckets',
     'accounts',
-    'rest_framework',
+  
     'rest_framework_simplejwt.token_blacklist',
+
 
     
 
@@ -142,6 +149,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Media files (User uploaded content)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -156,4 +167,12 @@ REST_FRAMEWORK={
         ]
         
     
+}
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),   # access token expires after 5 min
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),     # refresh token expires after 1 day
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
 }

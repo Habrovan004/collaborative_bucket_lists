@@ -3,8 +3,8 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from .models import Bucket
-from .serializers import BucketSerializer
+from .models import Bucket,Comment
+from .serializers import BucketSerializer,CommentSerializer
 
 
 @api_view(['GET', 'POST'])
@@ -24,8 +24,10 @@ def bucket_list_create(request):
 
         serializer = BucketSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(owner=request.user)
-            return Response(serializer.data, status=201)
+            bucket = serializer.save(owner=request.user)
+            # Return the created bucket with proper image URL
+            response_serializer = BucketSerializer(bucket, context={'request': request})
+            return Response(response_serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
 
@@ -57,7 +59,7 @@ def bucket_detail(request, pk):
         return Response(status=204)
 
 
-# 3. Toggle complete
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def toggle_complete(request, pk):
@@ -74,7 +76,7 @@ def toggle_complete(request, pk):
     })
 
 
-# 4. Upvote / Remove upvote
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def upvote_bucket(request, pk):
@@ -93,3 +95,36 @@ def upvote_bucket(request, pk):
         "upvotes_count": bucket.upvotes_count,
         "action": action
     })
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def bucket_comments(request, pk):
+    bucket = get_object_or_404(Bucket, pk=pk)
+
+    if request.method == 'GET':
+        comments = bucket.comments.all() # type: ignore
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication required."}, status=401)
+
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user, bucket=bucket)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, pk=comment_id)
+
+    if comment.user != request.user:
+        return Response({"detail": "You can delete only your own comment."}, status=403)
+
+    comment.delete()
+    return Response(status=204)
